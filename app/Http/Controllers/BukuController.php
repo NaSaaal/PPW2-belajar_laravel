@@ -7,22 +7,24 @@ use Illuminate\Http\Request;
 use App\Models\Buku;
 class BukuController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
+        // Mengambil semua data buku
         $data_buku = Buku::all();
 
-        return view('buku.index', compact('data_buku'));
-    }
+        // Menghitung total jumlah buku
+        $total_buku = $data_buku->count();
 
-    /**
-     * Show the form for creating a new resource.
-     */
+        // Menghitung total harga dari semua buku
+        $total_harga = $data_buku->sum('harga');
+
+        // Mengirim data buku, total_buku, dan total_harga ke view
+        return view('buku.index', compact('data_buku', 'total_buku', 'total_harga'));
+    }
     public function create()
     {
-        //
+        return view('buku.create');
     }
 
     /**
@@ -30,7 +32,13 @@ class BukuController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $buku = new Buku;
+        $buku->judul = $request->judul;
+        $buku->penulis = $request->penulis;
+        $buku->harga = $request->harga;
+        $buku->tgl_terbit = $request->tgl_terbit;
+        $buku->save();
+        return redirect('/buku');
     }
 
     /**
@@ -55,7 +63,13 @@ class BukuController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $buku = Buku::findOrFail($id);
+        $buku->judul = $request->judul;
+        $buku->penulis = $request->penulis;
+        $buku->harga = $request->harga;
+        $buku->tgl_terbit = $request->tgl_terbit;
+        $buku->save();
+        return redirect('/buku');
     }
 
     /**
@@ -63,6 +77,9 @@ class BukuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $buku = Buku::findOrFail($id);
+        $buku->delete();
+
+        return redirect('/buku');
     }
 }
