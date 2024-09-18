@@ -22,7 +22,7 @@
         </main>
 
         <footer class="mt-5">
-            <p class="text-center">© 2024 Aplikasi Buku - Semua Hak Cipta Dilindungi</p>
+            <p class="text-center">© 2024 Aplikasi Buku - Belajar Laravel</p>
         </footer>
     </div>
 
