@@ -2,30 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Buku;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+//tambahkan kode berikut untuk memanggil model Buku
+use App\Models\Buku;
 class BukuController extends Controller
 {
-    // Menampilkan daftar buku
-    public function index()
+
+    public function __construct()
     {
-        $data_buku = Buku::all();
-        $total_buku = $data_buku->count();
-        $total_harga = $data_buku->sum('harga');
-        
-        return view('auth.dashboard', compact('data_buku', 'total_buku', 'total_harga'));
+        $this->middleware('auth')->except(['ShowLoginForm', 'login']);
     }
 
-    // Menampilkan form tambah buku
+    public function ShowLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($request->only('email', 'password'))) {
+            return redirect()->route('buku.index');
+        }
+
+        return back()->withErrors([
+            'email' => 'Email atau password salah',
+        ]);
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        return redirect()->route('login');
+    }
+
+    public function index()
+    {
+        // Mengambil semua data buku
+        $data_buku = Buku::all();
+
+        // Menghitung total jumlah buku
+        $total_buku = $data_buku->count();
+
+        // Menghitung total harga dari semua buku
+        $total_harga = $data_buku->sum('harga');
+
+        // Mengirim data buku, total_buku, dan total_harga ke view
+        return view('buku.index', compact('data_buku', 'total_buku', 'total_harga'));
+    }
     public function create()
     {
         return view('buku.create');
     }
 
-    // Menyimpan buku baru
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
+        // Validasi input
         $request->validate([
             'judul' => 'required|string|max:255',
             'penulis' => 'required|string|max:255',
@@ -33,50 +73,66 @@ class BukuController extends Controller
             'tgl_terbit' => 'required|date',
         ]);
 
-        Buku::create([
-            'judul' => $request->judul,
-            'penulis' => $request->penulis,
-            'harga' => $request->harga,
-            'tgl_terbit' => $request->tgl_terbit,
-        ]);
+        // Menyimpan data buku
+        $buku = new Buku;
+        $buku->judul = $request->judul;
+        $buku->penulis = $request->penulis;
+        $buku->harga = $request->harga;
+        $buku->tgl_terbit = $request->tgl_terbit;
+        $buku->save();
 
-        return redirect()->route('buku.index')->with('success', 'Buku berhasil ditambahkan');
+        return redirect('/buku');
     }
 
-    // Menampilkan form edit buku
-    public function edit($id)
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $buku = Buku::findOrFail($id);
+        return view('buku.show', compact('buku'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
     {
         $buku = Buku::findOrFail($id);
         return view('buku.edit', compact('buku'));
     }
 
-    // Mengupdate data buku
-    public function update(Request $request, $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
     {
-        $request->validate([
-            'judul' => 'required|string|max:255',
-            'penulis' => 'required|string|max:255',
-            'harga' => 'required|numeric',
-            'tgl_terbit' => 'required|date',
-        ]);
-
         $buku = Buku::findOrFail($id);
-        $buku->update([
-            'judul' => $request->judul,
-            'penulis' => $request->penulis,
-            'harga' => $request->harga,
-            'tgl_terbit' => $request->tgl_terbit,
-        ]);
-
-        return redirect()->route('buku.index')->with('success', 'Buku berhasil diperbarui');
+        $buku->judul = $request->judul;
+        $buku->penulis = $request->penulis;
+        $buku->harga = $request->harga;
+        $buku->tgl_terbit = $request->tgl_terbit;
+        $buku->save();
+        return redirect('/buku');
     }
 
-    // Menghapus buku
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
     {
         $buku = Buku::findOrFail($id);
         $buku->delete();
 
-        return redirect()->route('buku.index')->with('success', 'Buku berhasil dihapus');
+        return redirect('/buku');
     }
+    public function dashboard()
+    {
+        $data_buku = Buku::all(); // Mengambil semua data buku
+        $total_buku = $data_buku->count(); // Hitung total buku
+        $total_harga = $data_buku->sum('harga'); // Hitung total harga
+
+        return view('auth.dashboard', compact('data_buku', 'total_buku', 'total_harga'));
+    }
+
 }

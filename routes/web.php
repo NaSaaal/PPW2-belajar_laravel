@@ -54,10 +54,13 @@ Route::post('/store', [LoginRegisterController::class, 'store'])->name('store');
 Route::post('/logout', [LoginRegisterController::class, 'logout'])->name('logout');
 
 // Route untuk dashboard, hanya bisa diakses setelah login
-Route::get('/dashboard', [LoginRegisterController::class, 'dashboard'])->name('dashboard')->middleware('auth');
+Route::get('/dashboard', [LoginRegisterController::class, 'dashboard'])->name('dashboard')->middleware(['auth', 'admin']);
 
 // Routes untuk Buku (CRUD)
 Route::middleware('auth')->group(function () {
     Route::resource('buku', BukuController::class);
 });
 
+Route::get('/home', function () {
+    return view('home');
+});
