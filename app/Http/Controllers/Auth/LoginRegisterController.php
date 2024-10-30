@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Buku; // Pastikan model Buku diimport
+use Illuminate\Support\Facades\Storage; // Import class Storage
 
 class LoginRegisterController extends Controller
 {
@@ -31,13 +32,27 @@ class LoginRegisterController extends Controller
             'name' => 'required|string|max:250',
             'email' => 'required|email|max:250|unique:users',
             'password' => 'required|min:8|confirmed',
+            'photo' => 'image|nullable|max:1999', // Tambahkan validasi untuk foto
         ]);
+
+        if ($request->hasFile('photo')) {
+            // Ambil nama file
+            $filenameWithExt = $request->file('photo')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filenameSimpan = $filename . '_' . time() . '.' . $extension;
+            $path = $request->file('photo')->storeAs('public/photos', $filenameSimpan);
+        } 
+        else {
+            $path = 'public/photos/default.jpg';
+        }
 
         // Create a new user
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'photo' => $path
         ]);
 
         // Authenticate the user

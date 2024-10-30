@@ -40,6 +40,11 @@
 // });
 use App\Http\Controllers\Auth\LoginRegisterController;
 use App\Http\Controllers\BukuController;
+use App\Http\Controllers\UserController;
+
+Route::resource('users', UserController::class);
+Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
+Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
 
 // Route untuk halaman utama (redirect ke dashboard jika login)
 Route::get('/', function () {
@@ -64,3 +69,4 @@ Route::middleware('auth')->group(function () {
 Route::get('/home', function () {
     return view('home');
 });
+
