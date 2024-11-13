@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Buku; // Pastikan model Buku diimport
 use Illuminate\Support\Facades\Storage; // Import class Storage
+use App\Mail\UserRegisteredMail;
+use Illuminate\Support\Facades\Mail;
 
 class LoginRegisterController extends Controller
 {
@@ -42,28 +44,33 @@ class LoginRegisterController extends Controller
             $extension = $request->file('photo')->getClientOriginalExtension();
             $filenameSimpan = $filename . '_' . time() . '.' . $extension;
             $path = $request->file('photo')->storeAs('public/photos', $filenameSimpan);
-        } 
-        else {
+        } else {
             $path = 'public/photos/default.jpg';
         }
 
         // Create a new user
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'photo' => $path
         ]);
+        // Kirim email ke pengguna yang baru terdaftar
+        $userData = [
+            'name' => $user->name,
+            'email' => $user->email,
+        ];
+        Mail::to($user->email)->send(new UserRegisteredMail($userData));
 
         // Authenticate the user
         $credentials = $request->only('email', 'password');
         Auth::attempt($credentials);
 
-        // Redirect the user to the dashboard
-        $request->session()->regenerate();
-        return redirect()->route('dashboard')
-            ->withSuccess('You have successfully registered & logged in!');
+
+        // Redirect dengan pesan sukses
+        return redirect()->route('login')->with('success', 'Registrasi berhasil, silakan cek email Anda.');
     }
+
 
     // Display the login form
     public function login()
