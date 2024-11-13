@@ -3,10 +3,43 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 //tambahkan kode berikut untuk memanggil model Buku
 use App\Models\Buku;
 class BukuController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth')->except(['ShowLoginForm', 'login']);
+    }
+
+    public function ShowLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($request->only('email', 'password'))) {
+            return redirect()->route('buku.index');
+        }
+
+        return back()->withErrors([
+            'email' => 'Email atau password salah',
+        ]);
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        return redirect()->route('login');
+    }
 
     public function index()
     {
@@ -32,12 +65,22 @@ class BukuController extends Controller
      */
     public function store(Request $request)
     {
+        // Validasi input
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'penulis' => 'required|string|max:255',
+            'harga' => 'required|numeric',
+            'tgl_terbit' => 'required|date',
+        ]);
+
+        // Menyimpan data buku
         $buku = new Buku;
         $buku->judul = $request->judul;
         $buku->penulis = $request->penulis;
         $buku->harga = $request->harga;
         $buku->tgl_terbit = $request->tgl_terbit;
         $buku->save();
+
         return redirect('/buku');
     }
 
@@ -46,7 +89,8 @@ class BukuController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $buku = Buku::findOrFail($id);
+        return view('buku.show', compact('buku'));
     }
 
     /**
@@ -82,4 +126,13 @@ class BukuController extends Controller
 
         return redirect('/buku');
     }
+    public function dashboard()
+    {
+        $data_buku = Buku::all(); // Mengambil semua data buku
+        $total_buku = $data_buku->count(); // Hitung total buku
+        $total_harga = $data_buku->sum('harga'); // Hitung total harga
+
+        return view('auth.dashboard', compact('data_buku', 'total_buku', 'total_harga'));
+    }
+
 }
