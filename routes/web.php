@@ -41,6 +41,14 @@
 use App\Http\Controllers\Auth\LoginRegisterController;
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SendEmailController;
+
+Route::get('/send-mail', [
+    SendEmailController::class,
+    'index'
+])->name('kirim-email');
+
+Route::post('/post-email', [SendEmailController::class, 'store'])->name('post-email');
 
 Route::resource('users', UserController::class);
 Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
