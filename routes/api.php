@@ -2,6 +2,13 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\InfoController;
+use App\Http\Controllers\GreetController;
+
+Route::get('/greet', [GreetController::class, 'greet'])->name('greet');
+Route::get('/info', [InfoController::class, 'index'])->name('info');
+
+
 
 /*
 |--------------------------------------------------------------------------
